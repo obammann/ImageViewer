@@ -6,6 +6,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    //View image in label
+    QPixmap pix("/Users/oliverbammann/Documents/Studium/Medieninformatik/6.\ Semester/ImageViewer/img/Sample01.png");
+    ui->label->setPixmap(pix);
 }
 
 MainWindow::~MainWindow()
@@ -19,5 +22,5 @@ void MainWindow::on_pushButton_clicked()
     QFileDialog dialog(this);
     dialog.setNameFilter(tr("Images (*.png *.xpm *.jpg"));
     dialog.setViewMode(QFileDialog::Detail);
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Images"),####);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Open Images"), "img", tr("Images Files (*.png *.xpm *.jpg)"));
 }
