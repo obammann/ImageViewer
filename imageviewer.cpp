@@ -4,6 +4,7 @@
 #endif
 
 #include "imageviewer.h"
+#include <math.h>
 
 ImageViewer::ImageViewer()
    : imageLabel(new QLabel)
@@ -45,6 +46,35 @@ bool ImageViewer::loadFile(const QString &fileName)
         .arg(QDir::toNativeSeparators(fileName)).arg(image.width()).arg(image.height()).arg(image.depth());
     statusBar()->showMessage(message);
     return true;
+}
+
+int ImageViewer::calculateDeviation()
+{
+    if (!image.isNull()) {
+        int imageValues [image.height()][image.width()];
+        double sum = 0;
+        double mean = 0;
+        for (int i=0; i<image.height(); i++) {
+            for (int j=0; j<image.width(); j++) {
+                QColor pixelColor = image.pixelColor(j, i);
+                imageValues[i][j] = pixelColor.black();
+                sum += pixelColor.black();
+            }
+        }
+        mean = sum / (image.height()*image.width());
+        double temp = 0;
+        double variane = 0;
+        for (int i=0; i<image.height(); i++) {
+            for (int j=0; j<image.width(); j++) {
+                QColor pixelColor = image.pixelColor(j, i);
+
+                temp += (pixelColor.black() - mean) - (pixelColor.black() - mean);
+            }
+        }
+        variane = temp / (image.width()*image.height());
+        return sqrt(variane);
+    }
+    return 0;
 }
 
 void ImageViewer::setImage(const QImage &newImage)
