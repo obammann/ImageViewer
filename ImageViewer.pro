@@ -4,21 +4,17 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-QT += printsupport
-QT += gui
+QT += widgets
+qtHaveModule(printsupport): QT += printsupport
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+HEADERS       = imageviewer.h
+SOURCES       = imageviewer.cpp \
+                main.cpp
 
-TARGET = ImageViewer
-TEMPLATE = app
+# install
+target.path = $$[QT_INSTALL_EXAMPLES]/widgets/widgets/imageviewer
+INSTALLS += target
 
-
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    imageviewer.cpp
-
-HEADERS  += mainwindow.h \
-    imageviewer.h
-
-FORMS    += mainwindow.ui
+wince {
+   DEPLOYMENT_PLUGIN += qjpeg qgif
+}

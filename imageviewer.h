@@ -2,15 +2,16 @@
 #define IMAGEVIEWER_H
 
 #include <QMainWindow>
-#include <QScrollBar>
 #include <QImage>
-#include <QLabel>
-#include <QScrollArea>
-#include <QAction>
+#ifndef QT_NO_PRINTER
 #include <QPrinter>
-#include <QGuiApplication>
-#include <QScreen>
-#endif // IMAGEVIEWER_H
+#endif
+
+class QAction;
+class QLabel;
+class QMenu;
+class QScrollArea;
+class QScrollBar;
 
 class ImageViewer : public QMainWindow
 {
@@ -59,3 +60,4 @@ private:
     QAction *fitToWindowAct;
 };
 
+#endif
