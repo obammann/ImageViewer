@@ -1,7 +1,4 @@
 #include <QtWidgets>
-#ifndef QT_NO_PRINTER
-#include <QPrintDialog>
-#endif
 
 #include "imageviewer.h"
 #include <math.h>
@@ -30,7 +27,7 @@ bool ImageViewer::loadFile(const QString &fileName)
 {
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
-    const QImage newImage = reader.read();
+    QImage newImage = reader.read();
     if (newImage.isNull()) {
         QMessageBox::information(this, QGuiApplication::applicationDisplayName(),
                                  tr("Cannot load %1: %2")
@@ -48,43 +45,213 @@ bool ImageViewer::loadFile(const QString &fileName)
     return true;
 }
 
-int ImageViewer::calculateDeviation()
+void ImageViewer::calculateAndShowBasicIndicators()
 {
     if (!image.isNull()) {
-        int imageValues [image.height()][image.width()];
-        double sum = 0;
-        double mean = 0;
-        for (int i=0; i<image.height(); i++) {
-            for (int j=0; j<image.width(); j++) {
-                QColor pixelColor = image.pixelColor(j, i);
-                imageValues[i][j] = pixelColor.black();
-                sum += pixelColor.black();
-            }
-        }
-        mean = sum / (image.height()*image.width());
-        double temp = 0;
-        double variane = 0;
-        for (int i=0; i<image.height(); i++) {
-            for (int j=0; j<image.width(); j++) {
-                QColor pixelColor = image.pixelColor(j, i);
+        int imageWidth = image.width();
+        int imageHeight = image.height();
 
-                temp += (pixelColor.black() - mean) - (pixelColor.black() - mean);
+        int minimum = 255;
+        int maximum = 0;
+        int sum = 0;
+
+        int colorInt = 0;
+        QColor rgb;
+
+        for (int i = 0; i < imageWidth; i++) {
+            for (int j = 0; j < imageHeight; j++) {
+                rgb = image.pixelColor(i,j);
+                colorInt = rgb.red();
+                sum += colorInt;
+                if (colorInt < minimum) {
+                    minimum = colorInt;
+                }
+                if (colorInt > maximum) {
+                    maximum = colorInt;
+                }
             }
         }
-        variane = temp / (image.width()*image.height());
-        return sqrt(variane);
+        int pixelsImage = imageWidth*imageHeight;
+        double average = sum / pixelsImage;
+        double powVariance;
+        double sumOfPow = 0;
+        double variance;
+        for (int i = 0; i < imageWidth; i++) {
+            for (int j = 0; j < imageHeight; j++) {
+                rgb = image.pixelColor(i,j);
+                colorInt = rgb.red();
+                variance = colorInt - average;
+                powVariance = pow(variance, 2);
+                sumOfPow += powVariance;
+            }
+        }
+        double stdDeviation = sqrt(sumOfPow / sum);
+        QMessageBox msgBox;
+        QString message = tr("Min: %1, Max: %2, Average: %3, Std.Deviation: %4")
+                    .arg(minimum).arg(maximum).arg(average).arg(stdDeviation);
+        msgBox.setText(message);
+        msgBox.exec();
+    } else {
+        QMessageBox msgBox;
+        msgBox.setText("First you have to open an image.");
+        msgBox.exec();
     }
-    return 0;
 }
 
-void ImageViewer::setImage(const QImage &newImage)
+//Does not work!
+void ImageViewer::imageSmoothing() {
+    bool ok;
+    int n = QInputDialog::getInt(this,tr("Smooth Level"), tr(""), 0, 0, 9999, 1, &ok);
+    if (ok) {
+        QImage smoothedImage = QImage(image.size(),image.format());
+        int step = 0;
+        if (n % 2 == 0) {
+            step = (n-1) / 2;
+        } else {
+            step = (n-2) / 2;
+        }
+
+        QColor* averagedColor = new QColor(0,0,0,255);
+
+        int imageWidth = image.width();
+        int imageHeight = image.height();
+        int colorSum = 0;
+        QColor actualColor;
+
+        for (int i = 0; i < imageWidth; i++) {
+            for (int j = 0; j < imageHeight; j++) {
+                colorSum = 0;
+                int numberOFNeighbours = 0;
+                int minX = i - step;
+                int minY = j - step;
+                int maxX = i + step;
+                int maxY = j + step;
+                if (minX < 0) {
+                    minX = 0;
+                }
+                if (minY < 0) {
+                    minY = 0;
+                }
+                if (maxX > imageWidth -1) {
+                    maxX = imageWidth-1;
+                }
+                if (maxY > imageHeight - 1) {
+                    maxY = imageHeight - 1;
+                }
+                int actualX = minX;
+                int actualY = minY;
+
+                do{
+                    do{
+                        numberOFNeighbours++;
+                        actualColor = image.pixelColor(actualX,actualY);
+                        colorSum += actualColor.red();
+                        actualX++;
+                    }while(actualX <= maxX);
+                    actualX = minX;
+                    actualY++;
+                }while(actualY <= maxY);
+
+                int averageColorInt = colorSum / numberOFNeighbours;
+                averagedColor->setRed(averageColorInt);
+                averagedColor->setGreen(averageColorInt);
+                averagedColor->setBlue(averageColorInt);
+
+                smoothedImage.setPixelColor(i,j,*averagedColor);
+            }
+        }
+        setImage(smoothedImage);
+    }
+}
+
+void ImageViewer::imageThresholding() {
+    bool ok;
+    int n = QInputDialog::getInt(this,tr("Threshold Level"),tr("0-255"), 0, 0, 255, 1, &ok);
+    if (ok) {
+        QImage newImage = QImage(image.size(),image.format());
+
+        QColor* black = new QColor(0,0,0);
+        QColor* white = new QColor(255,255,255);
+        int actualColorNr = 0;
+        QColor actualColor;
+
+        for (int i = 0; i < image.width(); i++) {
+            for (int j = 0; j < image.height(); j++) {
+                actualColor = image.pixelColor(i,j);
+                actualColorNr = actualColor.red();
+                if(actualColorNr <= n) {
+                    newImage.setPixelColor(i,j,*black);
+                } else if (actualColorNr > n) {
+                    newImage.setPixelColor(i,j,*white);
+                }
+            }
+        }
+        setImage(newImage);
+    }
+}
+
+//Does not work!
+void ImageViewer::calculateHorizontalGradient() {
+
+    QColor requestedPixel;
+    int IleftPixel = 0;
+    int IrightPixel = 0;
+    float ItoSet = 0;
+
+    QColor* newPixelColor = new QColor(ItoSet,ItoSet,ItoSet,255);
+
+    for (int i = 0; i < image.width(); i++) {
+        for (int j = 0; j < image.height(); j++) {
+            if (i == 0) {
+                requestedPixel = image.pixelColor(i + 1,j);
+                IrightPixel = requestedPixel.red();
+                requestedPixel = image.pixelColor(i,j);
+                ItoSet = (requestedPixel.red() - IrightPixel) / 2;
+            } else if (i == image.width() -1) {
+                requestedPixel = image.pixelColor(i - 1,j);
+                IleftPixel = requestedPixel.red();
+                requestedPixel = image.pixelColor(i,j);
+                ItoSet = (requestedPixel.red()- IleftPixel) / 2;
+            } else {
+                requestedPixel = image.pixelColor(i+1,j);
+                IrightPixel = requestedPixel.red();
+                requestedPixel = image.pixelColor(i-1,j);
+                IleftPixel = requestedPixel.red();
+                ItoSet = (IrightPixel-IleftPixel) /2;
+            }
+            if (ItoSet < 0) {
+                ItoSet *= -1;
+            }
+            ItoSet = ItoSet;
+            newPixelColor->setRed(ItoSet);
+            newPixelColor->setBlue(ItoSet);
+            newPixelColor->setGreen(ItoSet);
+            QImage newImage = image;
+            newImage.setPixelColor(i,j,*newPixelColor);
+            setImage(newImage);
+        }
+    }
+}
+
+void ImageViewer::calculateVerticalGradient() {
+
+}
+
+void ImageViewer::calculateMagnitudeGradient() {
+
+}
+
+void ImageViewer::calculateDirectionGradient() {
+
+}
+
+void ImageViewer::setImage(QImage &newImage)
 {
     image = newImage;
     imageLabel->setPixmap(QPixmap::fromImage(image));
     scaleFactor = 1.0;
 
     scrollArea->setVisible(true);
-    printAct->setEnabled(true);
     fitToWindowAct->setEnabled(true);
     updateActions();
 
@@ -147,23 +314,6 @@ void ImageViewer::saveAs()
     while (dialog.exec() == QDialog::Accepted && !saveFile(dialog.selectedFiles().first())) {}
 }
 
-void ImageViewer::print()
-{
-    Q_ASSERT(imageLabel->pixmap());
-#if !defined(QT_NO_PRINTER) && !defined(QT_NO_PRINTDIALOG)
-    QPrintDialog dialog(&printer, this);
-    if (dialog.exec()) {
-        QPainter painter(&printer);
-        QRect rect = painter.viewport();
-        QSize size = imageLabel->pixmap()->size();
-        size.scale(rect.size(), Qt::KeepAspectRatio);
-        painter.setViewport(rect.x(), rect.y(), size.width(), size.height());
-        painter.setWindow(imageLabel->pixmap()->rect());
-        painter.drawPixmap(0, 0, *imageLabel->pixmap());
-    }
-#endif
-}
-
 void ImageViewer::copy()
 {
 #ifndef QT_NO_CLIPBOARD
@@ -188,7 +338,7 @@ static QImage clipboardImage()
 void ImageViewer::paste()
 {
 #ifndef QT_NO_CLIPBOARD
-    const QImage newImage = clipboardImage();
+    QImage newImage = clipboardImage();
     if (newImage.isNull()) {
         statusBar()->showMessage(tr("No image in clipboard"));
     } else {
@@ -236,10 +386,6 @@ void ImageViewer::createActions()
     saveAsAct = fileMenu->addAction(tr("&Save As..."), this, &ImageViewer::saveAs);
     saveAsAct->setEnabled(false);
 
-    printAct = fileMenu->addAction(tr("&Print..."), this, &ImageViewer::print);
-    printAct->setShortcut(QKeySequence::Print);
-    printAct->setEnabled(false);
-
     fileMenu->addSeparator();
 
     QAction *exitAct = fileMenu->addAction(tr("E&xit"), this, &QWidget::close);
@@ -253,6 +399,11 @@ void ImageViewer::createActions()
 
     QAction *pasteAct = editMenu->addAction(tr("&Paste"), this, &ImageViewer::paste);
     pasteAct->setShortcut(QKeySequence::Paste);
+
+    calculateIndicators = editMenu->addAction(tr("&Show Indicators"), this, &ImageViewer::calculateAndShowBasicIndicators);
+    thresholdingImage = editMenu->addAction(tr("&Thresholding"), this, &ImageViewer::imageThresholding);
+    smoothingImage = editMenu->addAction(tr("&Smoothing"), this, &ImageViewer::imageSmoothing);
+    horizontalGradient = editMenu->addAction(tr("&Show Horizontal Gradient"), this, &ImageViewer::calculateHorizontalGradient);
 
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
 

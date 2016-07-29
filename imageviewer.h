@@ -3,9 +3,6 @@
 
 #include <QMainWindow>
 #include <QImage>
-#ifndef QT_NO_PRINTER
-#include <QPrinter>
-#endif
 
 class QAction;
 class QLabel;
@@ -24,21 +21,26 @@ public:
 private slots:
     void open();
     void saveAs();
-    void print();
     void copy();
     void paste();
     void zoomIn();
     void zoomOut();
     void normalSize();
     void fitToWindow();
-    int calculateDeviation();
+    void calculateAndShowBasicIndicators();
+    void imageSmoothing();
+    void imageThresholding();
+    void calculateHorizontalGradient();
+    void calculateVerticalGradient();
+    void calculateMagnitudeGradient();
+    void calculateDirectionGradient();
 
 private:
     void createActions();
     void createMenus();
     void updateActions();
     bool saveFile(const QString &fileName);
-    void setImage(const QImage &newImage);
+    void setImage(QImage &newImage);
     void scaleImage(double factor);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
@@ -47,17 +49,17 @@ private:
     QScrollArea *scrollArea;
     double scaleFactor;
 
-#ifndef QT_NO_PRINTER
-    QPrinter printer;
-#endif
-
     QAction *saveAsAct;
-    QAction *printAct;
     QAction *copyAct;
     QAction *zoomInAct;
     QAction *zoomOutAct;
     QAction *normalSizeAct;
     QAction *fitToWindowAct;
+    QAction *calculateIndicators;
+    QAction *thresholdingImage;
+    QAction *smoothingImage;
+    QAction *imageGradients;
+    QAction *horizontalGradient;
 };
 
 #endif

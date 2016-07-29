@@ -5,7 +5,6 @@
 #-------------------------------------------------
 
 QT += widgets
-qtHaveModule(printsupport): QT += printsupport
 
 HEADERS       = imageviewer.h
 SOURCES       = imageviewer.cpp \
