@@ -23,8 +23,7 @@ ImageViewer::ImageViewer()
 }
 
 
-bool ImageViewer::loadFile(const QString &fileName)
-{
+bool ImageViewer::loadFile(const QString &fileName) {
     QImageReader reader(fileName);
     reader.setAutoTransform(true);
     QImage newImage = reader.read();
@@ -45,8 +44,7 @@ bool ImageViewer::loadFile(const QString &fileName)
     return true;
 }
 
-void ImageViewer::calculateAndShowBasicIndicators()
-{
+void ImageViewer::calculateAndShowBasicIndicators() {
     if (!image.isNull()) {
         int imageWidth = image.width();
         int imageHeight = image.height();
@@ -282,8 +280,7 @@ void ImageViewer::calculateDirectionGradient() {
 
 }
 
-void ImageViewer::setImage(QImage &newImage)
-{
+void ImageViewer::setImage(QImage &newImage) {
     image = newImage;
     imageLabel->setPixmap(QPixmap::fromImage(image));
     scaleFactor = 1.0;
@@ -297,8 +294,7 @@ void ImageViewer::setImage(QImage &newImage)
 }
 
 
-bool ImageViewer::saveFile(const QString &fileName)
-{
+bool ImageViewer::saveFile(const QString &fileName) {
     QImageWriter writer(fileName);
 
     if (!writer.write(image)) {
@@ -313,8 +309,7 @@ bool ImageViewer::saveFile(const QString &fileName)
 }
 
 
-static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode)
-{
+static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMode acceptMode) {
     static bool firstDialog = true;
 
     if (firstDialog) {
@@ -335,32 +330,28 @@ static void initializeImageFileDialog(QFileDialog &dialog, QFileDialog::AcceptMo
         dialog.setDefaultSuffix("jpg");
 }
 
-void ImageViewer::open()
-{
+void ImageViewer::open() {
     QFileDialog dialog(this, tr("Open File"));
     initializeImageFileDialog(dialog, QFileDialog::AcceptOpen);
 
     while (dialog.exec() == QDialog::Accepted && !loadFile(dialog.selectedFiles().first())) {}
 }
 
-void ImageViewer::saveAs()
-{
+void ImageViewer::saveAs() {
     QFileDialog dialog(this, tr("Save File As"));
     initializeImageFileDialog(dialog, QFileDialog::AcceptSave);
 
     while (dialog.exec() == QDialog::Accepted && !saveFile(dialog.selectedFiles().first())) {}
 }
 
-void ImageViewer::copy()
-{
+void ImageViewer::copy() {
 #ifndef QT_NO_CLIPBOARD
     QGuiApplication::clipboard()->setImage(image);
 #endif // !QT_NO_CLIPBOARD
 }
 
 #ifndef QT_NO_CLIPBOARD
-static QImage clipboardImage()
-{
+static QImage clipboardImage() {
     if (const QMimeData *mimeData = QGuiApplication::clipboard()->mimeData()) {
         if (mimeData->hasImage()) {
             const QImage image = qvariant_cast<QImage>(mimeData->imageData());
@@ -372,8 +363,7 @@ static QImage clipboardImage()
 }
 #endif // !QT_NO_CLIPBOARD
 
-void ImageViewer::paste()
-{
+void ImageViewer::paste() {
 #ifndef QT_NO_CLIPBOARD
     QImage newImage = clipboardImage();
     if (newImage.isNull()) {
@@ -388,24 +378,20 @@ void ImageViewer::paste()
 #endif // !QT_NO_CLIPBOARD
 }
 
-void ImageViewer::zoomIn()
-{
+void ImageViewer::zoomIn() {
     scaleImage(1.25);
 }
 
-void ImageViewer::zoomOut()
-{
+void ImageViewer::zoomOut() {
     scaleImage(0.8);
 }
 
-void ImageViewer::normalSize()
-{
+void ImageViewer::normalSize() {
     imageLabel->adjustSize();
     scaleFactor = 1.0;
 }
 
-void ImageViewer::fitToWindow()
-{
+void ImageViewer::fitToWindow() {
     bool fitToWindow = fitToWindowAct->isChecked();
     scrollArea->setWidgetResizable(fitToWindow);
     if (!fitToWindow)
@@ -413,8 +399,7 @@ void ImageViewer::fitToWindow()
     updateActions();
 }
 
-void ImageViewer::createActions()
-{
+void ImageViewer::createActions() {
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
 
     QAction *openAct = fileMenu->addAction(tr("&Open..."), this, &ImageViewer::open);
@@ -465,8 +450,7 @@ void ImageViewer::createActions()
     fitToWindowAct->setShortcut(tr("Ctrl+F"));
 }
 
-void ImageViewer::updateActions()
-{
+void ImageViewer::updateActions() {
     saveAsAct->setEnabled(!image.isNull());
     copyAct->setEnabled(!image.isNull());
     zoomInAct->setEnabled(!fitToWindowAct->isChecked());
@@ -474,8 +458,7 @@ void ImageViewer::updateActions()
     normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
 }
 
-void ImageViewer::scaleImage(double factor)
-{
+void ImageViewer::scaleImage(double factor) {
     Q_ASSERT(imageLabel->pixmap());
     scaleFactor *= factor;
     imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
@@ -487,8 +470,7 @@ void ImageViewer::scaleImage(double factor)
     zoomOutAct->setEnabled(scaleFactor > 0.333);
 }
 
-void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor)
-{
+void ImageViewer::adjustScrollBar(QScrollBar *scrollBar, double factor) {
     scrollBar->setValue(int(factor * scrollBar->value()
                             + ((factor - 1) * scrollBar->pageStep()/2)));
 }
