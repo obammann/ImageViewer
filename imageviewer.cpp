@@ -109,7 +109,7 @@ void ImageViewer::imageSmoothing() {
             step = (n-2) / 2;
         }
 
-        QColor* averagedColor = new QColor(0,0,0,255);
+        QColor averagedColor = QColor(0, 0, 0);
 
         int imageWidth = image.width();
         int imageHeight = image.height();
@@ -151,11 +151,11 @@ void ImageViewer::imageSmoothing() {
                 }while(actualY <= maxY);
 
                 int averageColorInt = colorSum / numberOFNeighbours;
-                averagedColor->setRed(averageColorInt);
-                averagedColor->setGreen(averageColorInt);
-                averagedColor->setBlue(averageColorInt);
+                averagedColor.setRed(averageColorInt);
+                averagedColor.setGreen(averageColorInt);
+                averagedColor.setBlue(averageColorInt);
 
-                smoothedImage.setPixelColor(i,j,*averagedColor);
+                smoothedImage.setPixelColor(i, j, averagedColor);
             }
         }
         setImage(smoothedImage);
