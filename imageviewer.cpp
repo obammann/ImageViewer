@@ -96,10 +96,10 @@ void ImageViewer::calculateAndShowBasicIndicators() {
     }
 }
 
-//Does not work!
+//Does not work properly!
 void ImageViewer::imageSmoothing() {
     bool ok;
-    int n = QInputDialog::getInt(this,tr("Smooth Level"), tr(""), 0, 0, 9999, 1, &ok);
+    int n = QInputDialog::getInt(this,tr("Smooth Level"), tr(""), 0, 0, 30, 1, &ok);
     if (ok) {
         QImage smoothedImage = QImage(image.size(),image.format());
         int step = 0;
