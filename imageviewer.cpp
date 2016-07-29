@@ -190,51 +190,88 @@ void ImageViewer::imageThresholding() {
     }
 }
 
-//Does not work!
 void ImageViewer::calculateHorizontalGradient() {
+    QImage newImage = image;
+    QColor pixel;
+    int leftPixel = 0;
+    int rightPixel = 0;
+    int colorValue = 0;
 
-    QColor requestedPixel;
-    int IleftPixel = 0;
-    int IrightPixel = 0;
-    float ItoSet = 0;
-
-    QColor* newPixelColor = new QColor(ItoSet,ItoSet,ItoSet,255);
+    QColor newColor = QColor(colorValue, colorValue, colorValue);
 
     for (int i = 0; i < image.width(); i++) {
         for (int j = 0; j < image.height(); j++) {
             if (i == 0) {
-                requestedPixel = image.pixelColor(i + 1,j);
-                IrightPixel = requestedPixel.red();
-                requestedPixel = image.pixelColor(i,j);
-                ItoSet = (requestedPixel.red() - IrightPixel) / 2;
+                pixel = image.pixelColor(i + 1,j);
+                rightPixel = pixel.red();
+                pixel = image.pixelColor(i,j);
+                colorValue = (pixel.red() - rightPixel) / 2;
             } else if (i == image.width() -1) {
-                requestedPixel = image.pixelColor(i - 1,j);
-                IleftPixel = requestedPixel.red();
-                requestedPixel = image.pixelColor(i,j);
-                ItoSet = (requestedPixel.red()- IleftPixel) / 2;
+                pixel = image.pixelColor(i - 1,j);
+                leftPixel = pixel.red();
+                pixel = image.pixelColor(i,j);
+                colorValue = (pixel.red()- leftPixel) / 2;
             } else {
-                requestedPixel = image.pixelColor(i+1,j);
-                IrightPixel = requestedPixel.red();
-                requestedPixel = image.pixelColor(i-1,j);
-                IleftPixel = requestedPixel.red();
-                ItoSet = (IrightPixel-IleftPixel) /2;
+                pixel = image.pixelColor(i+1,j);
+                rightPixel = pixel.red();
+                pixel = image.pixelColor(i-1,j);
+                leftPixel = pixel.red();
+                colorValue = (rightPixel-leftPixel) /2;
             }
-            if (ItoSet < 0) {
-                ItoSet *= -1;
+            if (colorValue < 0) {
+                colorValue *= -1;
             }
-            ItoSet = ItoSet;
-            newPixelColor->setRed(ItoSet);
-            newPixelColor->setBlue(ItoSet);
-            newPixelColor->setGreen(ItoSet);
-            QImage newImage = image;
-            newImage.setPixelColor(i,j,*newPixelColor);
-            setImage(newImage);
+            newColor.setRed(colorValue);
+            newColor.setBlue(colorValue);
+            newColor.setGreen(colorValue);
+
+            newImage.setPixelColor(i, j, newColor);
+
         }
     }
+    setImage(newImage);
 }
 
 void ImageViewer::calculateVerticalGradient() {
+    QImage newImage = image;
 
+    QColor pixel;
+    int upperPixel = 0;
+    int lowerPixel = 0;
+    int colorValue = 0;
+
+    QColor newColor = QColor(colorValue, colorValue, colorValue);
+
+    for (int i = 0; i < image.width(); i++) {
+        for (int j = 0; j < image.height(); j++) {
+            if (j == 0) {
+                pixel = image.pixelColor(i,j + 1);
+                lowerPixel = pixel.red();
+                pixel = image.pixelColor(i,j);
+                colorValue = (pixel.red() - lowerPixel) / 2;
+            } else if (j == image.height() -1) {
+                pixel = image.pixelColor(i,j-1);
+                upperPixel = pixel.red();
+                pixel = image.pixelColor(i,j);
+                colorValue = (pixel.red()- upperPixel) / 2;
+            } else {
+                pixel = image.pixelColor(i,j+1);
+                lowerPixel = pixel.red();
+                pixel = image.pixelColor(i,j-1);
+                upperPixel = pixel.red();
+                colorValue = (lowerPixel-upperPixel) /2;
+            }
+            if (colorValue < 0) {
+                colorValue *= -1;
+            }
+            newColor.setRed(colorValue);
+            newColor.setBlue(colorValue);
+            newColor.setGreen(colorValue);
+
+            newImage.setPixelColor(i, j, newColor);
+        }
+    }
+    setImage(newImage);
 }
 
 void ImageViewer::calculateMagnitudeGradient() {
@@ -404,6 +441,7 @@ void ImageViewer::createActions()
     thresholdingImage = editMenu->addAction(tr("&Thresholding"), this, &ImageViewer::imageThresholding);
     smoothingImage = editMenu->addAction(tr("&Smoothing"), this, &ImageViewer::imageSmoothing);
     horizontalGradient = editMenu->addAction(tr("&Show Horizontal Gradient"), this, &ImageViewer::calculateHorizontalGradient);
+    verticalGradient = editMenu->addAction(tr("&Show Vertical Gradient"), this, &ImageViewer::calculateVerticalGradient);
 
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
 

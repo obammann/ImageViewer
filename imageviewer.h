@@ -60,6 +60,7 @@ private:
     QAction *smoothingImage;
     QAction *imageGradients;
     QAction *horizontalGradient;
+    QAction *verticalGradient;
 };
 
 #endif
